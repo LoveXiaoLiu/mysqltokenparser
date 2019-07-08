@@ -4,7 +4,7 @@
 
 __author__ = """gra55"""
 __email__ = 'shuai.grass@gmail.com'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 from mysqltokenparser import mysql_token_parser
 
