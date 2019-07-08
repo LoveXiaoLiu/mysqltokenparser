@@ -32,13 +32,13 @@ Quickstart
 
 示例代码::
 
-   pip install mysqltokenparser1
+   pip install mysqltokenparser
 
    import mysqltokenparser as mtp
-   mtp.mysql_token_parser("select name from student")
-   tn = mtp.get_tablename()
-   in = mtp.get_indexname()
-   cn = mtp.get_columnnames()
+   token_obj = mtp.mysql_token_parser("select name from student")
+   tn = token_obj.get_tablename()
+   in = token_obj.get_indexname()
+   cn = token_obj.get_columnnames()
    print "table name:", tn
    print "index name:", in
    print "column name:", cn
