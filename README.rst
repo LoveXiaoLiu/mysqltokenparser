@@ -27,6 +27,25 @@ Get the mysql's tokens by the tool.
 * Documentation: https://mysqltokenparser.readthedocs.io.
 
 
+Quickstart
+----------
+
+.. code::
+pip install mysqltokenparser
+
+import mysqltokenparser as mtp
+
+mtp.mysql_token_parser("select name from student")
+
+tn = mtp.get_tablename()
+in = mtp.get_indexname()
+cn = mtp.get_columnnames()
+
+print "table name:", tn
+print "index name:", in
+print "column name:", cn
+
+
 Features
 --------
 

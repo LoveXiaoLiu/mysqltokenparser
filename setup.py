@@ -13,7 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [ ]
 
-setup_requirements = ['pytest-runner', ]
+setup_requirements = ['pytest-runner', 'antlr4-python2-runtime==4.7.2']
 
 test_requirements = ['pytest', ]
 
