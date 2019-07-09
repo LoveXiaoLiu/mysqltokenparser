@@ -6,6 +6,6 @@ __author__ = """gra55"""
 __email__ = 'shuai.grass@gmail.com'
 __version__ = '0.3.0'
 
-from mysqltokenparser import mysql_token_parser
+from .mysqltokenparser import mysql_token_parser
 
 __all__ = ['mysql_token_parser']
