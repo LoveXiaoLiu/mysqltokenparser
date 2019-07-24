@@ -25,7 +25,7 @@ class MyListener(MySqlParserListener):
         self.w_handle.set_tokens(name, value)
 
     def enterDdlStatement(self, ctx):
-        print ctx
+        # print ctx
         pass
 
     # table name
@@ -127,13 +127,7 @@ if __name__ == '__main__':
     alter_sql3 = u"ALTER TABLE tab_name ADD address01  varchar(100) NOT NULL DEFAULT '' COMMENT '地址1' , ADD address02  varchar(100) NOT NULL DEFAULT '' COMMENT '地址2' ;"
 
     #### debug code
-    sql = creat_sql1
+    sql = alter_sql1
     a = mysql_token_parser(sql)
-    # b = a.get_tablename()
-    # c = a.get_indexname()
-    # d = a.get_columnnames()
     e = a.get_tokens()
-    # print "table name:", b
-    # print "index name:", c
-    # print "column name:", d
     print "tokens", e

@@ -9,6 +9,9 @@ import pytest
 from helper import mysqltokenparser as mtp
 
 
+table_attr_map = mtp.TABLE_ATTR_MAP
+
+
 @pytest.fixture
 def response():
     """Sample pytest fixture.
@@ -52,3 +55,19 @@ def test_createtable(response):
     token_obj = mtp.mysql_token_parser(sql)
     tokens = token_obj.get_tokens()
     assert isinstance(tokens, dict)
+
+    hope_tablename = "aaa.t_zcm_operation_luck_award_record"
+    tablename = tokens.get(table_attr_map.tablename)
+    assert isinstance(tablename, list)
+    assert hope_tablename in tablename
+
+    hope_columnnames = [
+        u'id', u'operation_seq', u'award_user_id', u'award_type',
+        u'award_id', u'award_content', u'award_reason', u'award_source',
+        u'state', u'addtime', u'updatetime', u'ip', u'imei', u'intext', u'longext', u'strext'
+    ]
+    columnnames = tokens.get(table_attr_map.columnnames)
+    assert isinstance(columnnames, list)
+    assert len(columnnames) == len(hope_columnnames)
+    for hc in hope_columnnames:
+        assert hc in columnnames
