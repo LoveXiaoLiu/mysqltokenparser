@@ -10,11 +10,20 @@ from MySqlParser import MySqlParser
 from MySqlParserListener import MySqlParserListener
 
 
-class TABLE_ATTR_MAP(object):
+class TABLE_ATTR_MAP:
     tablename = 'tablenames'
     indexname = 'indexnames'
     alluid = 'alluids'
     columnnames = 'columnnames'
+    sqltype = 'sqltype'
+    primarykey = "primarykey"
+    uniquekey = "uniquekey"
+
+
+class SQL_TYPE:
+    DDL = 'ddl'
+    DML = 'dml'
+    DCL = 'dcl'
 
 
 class MyListener(MySqlParserListener):
@@ -25,26 +34,28 @@ class MyListener(MySqlParserListener):
         self.w_handle.set_tokens(name, value)
 
     def enterDdlStatement(self, ctx):
-        # print ctx
-        pass
+        self._set_data(TABLE_ATTR_MAP.sqltype, SQL_TYPE.DDL)
+
+    def enterDmlStatement(self, ctx):
+        self._set_data(TABLE_ATTR_MAP.sqltype, SQL_TYPE.DML)
+
+    def enterAdministrationStatement(self, ctx):
+        self._set_data(TABLE_ATTR_MAP.sqltype, SQL_TYPE.DCL)
 
     # table name
     def enterTableName(self, ctx):
         value = ctx.getText()
         self._set_data(TABLE_ATTR_MAP.tablename, value)
-        # self.w_handle.set_interface(TABLE_ATTR_MAP.tablename, value)
 
     # table index Column Names
     def enterIndexColumnNames(self, ctx):
         value = ctx.getText()
         self._set_data(TABLE_ATTR_MAP.indexname, value)
-        # self.w_handle.set_interface(TABLE_ATTR_MAP.indexname, value)
 
     # statement uid
     def enterUid(self, ctx):
         value = ctx.getText()
         # self.set_data(TABLE_ATTR_MAP.alluid, value)
-        # self.w_handle.set_interface(TABLE_ATTR_MAP.alluid, value)
 
         if not (isinstance(ctx.parentCtx, (
             MySqlParser.UniqueKeyTableConstraintContext,
@@ -54,21 +65,18 @@ class MyListener(MySqlParserListener):
             MySqlParser.IndexColumnNameContext,
         )) or isinstance(ctx.parentCtx.parentCtx, MySqlParser.TableNameContext)):
             self._set_data(TABLE_ATTR_MAP.columnnames, value)
-            # self.w_handle.set_interface(TABLE_ATTR_MAP.columnnames, value)
 
     # PrimaryKey Column
     def enterPrimaryKeyColumnConstraint(self, ctx):
         if isinstance(ctx.parentCtx.parentCtx, MySqlParser.ColumnDeclarationContext):
             value = ctx.parentCtx.parentCtx.children[0].getText()
-            # self.w_handle.set_interface(TABLE_ATTR_MAP.indexname, "({0})".format(value))
-            self._set_data(TABLE_ATTR_MAP.indexname, "({0})".format(value))
+            self._set_data(TABLE_ATTR_MAP.primarykey, "({0})".format(value))
 
     # UniqueKey Column
     def enterUniqueKeyColumnConstraint(self, ctx):
         if isinstance(ctx.parentCtx.parentCtx, MySqlParser.ColumnDeclarationContext):
             value = ctx.parentCtx.parentCtx.children[0].getText()
-            # self.w_handle.set_interface(TABLE_ATTR_MAP.indexname, "({0})".format(value))
-            self._set_data(TABLE_ATTR_MAP.indexname, "({0})".format(value))
+            self._set_data(TABLE_ATTR_MAP.uniquekey, "({0})".format(value))
 
 
 class CaseChangingCharInputStream(InputStream):
@@ -117,17 +125,3 @@ class SqlParseHandle(object):
 
 def mysql_token_parser(sql):
     return SqlParseHandle(sql)
-
-
-if __name__ == '__main__':
-
-
-    alter_sql1 = u"ALTER TABLE t_a_gun2_6_dw_pfm_emp_cm ADD INDEX idx_eob_date(empid_org_bus (200),pfm_date);"
-    alter_sql2 = u"ALTER TABLE tab_name ADD address  varchar(100) NOT NULL DEFAULT '' COMMENT '地址' AFTER  amount;"
-    alter_sql3 = u"ALTER TABLE tab_name ADD address01  varchar(100) NOT NULL DEFAULT '' COMMENT '地址1' , ADD address02  varchar(100) NOT NULL DEFAULT '' COMMENT '地址2' ;"
-
-    #### debug code
-    sql = alter_sql1
-    a = mysql_token_parser(sql)
-    e = a.get_tokens()
-    print "tokens", e
