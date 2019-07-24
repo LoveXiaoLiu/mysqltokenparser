@@ -6,7 +6,7 @@
 import pytest
 
 
-from mysqltokenparser import mysqltokenparser as mtp
+from helper import mysqltokenparser as mtp
 
 
 @pytest.fixture
