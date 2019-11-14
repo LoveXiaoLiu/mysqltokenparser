@@ -13,53 +13,65 @@ def test_altertable_addcolumns():
         DEFAULT '' COMMENT '地址1' , ADD address02  varchar(100) NOT \
         NULL DEFAULT '' COMMENT '地址2' ;"
 
-    token_obj = mtp.mysql_token_parser(sql)
-    tokens = token_obj.get_tokens()
-
+    tokens = mtp.mysql_token_parser(sql)
     assert isinstance(tokens, dict)
 
     hope_tablename = 'tab_name'
-    tablename = tokens.get(table_attr_map.tablename)
-    assert isinstance(tablename, list)
-    assert hope_tablename in tablename
+    assert hope_tablename == tokens['data']['data']['tablename']
 
-    hope_columns = ['address01', 'address02']
-    columnnames = tokens.get(table_attr_map.columnnames)
-    assert isinstance(columnnames, list)
-    assert len(hope_columns) == len(columnnames)
-    for col in hope_columns:
-        assert col in columnnames
+    hope_add_len = 2
+    assert hope_add_len == len(tokens['data']['data']['alter_data'])
 
-    hope_sqltype = 'ddl'
-    sqltype = tokens.get(table_attr_map.sqltype)
-    assert hope_sqltype in sqltype
+    hope_columnname = ['address01', 'address02']
+    assert tokens['data']['data']['alter_data'][0]['data']['columnname'] in hope_columnname
+    assert tokens['data']['data']['alter_data'][1]['data']['columnname'] in hope_columnname
 
 
 def test_altertable_addindexs():
     sql = u"ALTER TABLE t_a_gun2_6_dw_pfm_emp_cm ADD INDEX \
         idx_eob_date(empid_org_bus (200),pfm_date);"
 
-    token_obj = mtp.mysql_token_parser(sql)
-    tokens = token_obj.get_tokens()
+    tokens = mtp.mysql_token_parser(sql)
     assert isinstance(tokens, dict)
 
     hope_tablename = 't_a_gun2_6_dw_pfm_emp_cm'
-    tablename = tokens.get(table_attr_map.tablename)
-    assert isinstance(tablename, list)
-    assert hope_tablename in tablename
+    assert hope_tablename == tokens['data']['data']['tablename']
 
-    hope_columns = ['idx_eob_date']
-    columnnames = tokens.get(table_attr_map.columnnames)
-    assert isinstance(columnnames, list)
-    assert len(hope_columns) == len(columnnames)
-    for col in hope_columns:
-        assert col in columnnames
+    hope_indexname = 'idx_eob_date'
+    assert hope_indexname == tokens['data']['data']['alter_data'][0]['data']['indexname']
 
-    hope_indexs = ["empid_org_bus(200),pfm_date"]
-    indexname = tokens.get(table_attr_map.indexname)
-    for idx in hope_indexs:
-        assert idx in indexname
+    hope_columnname = ['empid_org_bus', 'pfm_date']
+    assert hope_columnname == tokens['data']['data']['alter_data'][0]['data']['indexdefinition']['columnnames']
 
-    hope_sqltype = 'ddl'
-    sqltype = tokens.get(table_attr_map.sqltype)
-    assert hope_sqltype in sqltype
+
+def test_altertable_adduniqueindexs():
+    sql = u"ALTER TABLE tab_name ADD UNIQUE uniq_name (name);"
+
+    tokens = mtp.mysql_token_parser(sql)
+    assert isinstance(tokens, dict)
+
+    hope_tablename = 'tab_name'
+    assert hope_tablename == tokens['data']['data']['tablename']
+
+    hope_indexname = 'uniq_name'
+    assert hope_indexname == tokens['data']['data']['alter_data'][0]['data']['indexname']
+
+    hope_columnname = ['name']
+    assert hope_columnname == tokens['data']['data']['alter_data'][0]['data']['indexdefinition']['columnnames']
+
+
+def test_altertable_dropcolumns():
+    sql = u"ALTER TABLE tab_name DROP COLUMN address1, DROP COLUMN address2;"
+
+    tokens = mtp.mysql_token_parser(sql)
+    assert isinstance(tokens, dict)
+
+    hope_tablename = 'tab_name'
+    assert hope_tablename == tokens['data']['data']['tablename']
+
+    hope_drop_len = 2
+    assert hope_drop_len == len(tokens['data']['data']['alter_data'])
+
+    hope_columnname = ['address1', 'address2']
+    assert tokens['data']['data']['alter_data'][0]['data']['columnname'] in hope_columnname
+    assert tokens['data']['data']['alter_data'][1]['data']['columnname'] in hope_columnname

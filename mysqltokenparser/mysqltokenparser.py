@@ -2,81 +2,145 @@
 
 """Main module."""
 
+import antlr4
 from antlr4 import CommonTokenStream, ParseTreeWalker, FileStream
 from antlr4.InputStream import InputStream
 
 from MySqlLexer import MySqlLexer
 from MySqlParser import MySqlParser
 from MySqlParserListener import MySqlParserListener
-
-
-class TABLE_ATTR_MAP:
-    tablename = 'tablenames'
-    indexname = 'indexnames'
-    alluid = 'alluids'
-    columnnames = 'columnnames'
-    sqltype = 'sqltype'
-    primarykey = "primarykey"
-    uniquekey = "uniquekey"
-
-
-class SQL_TYPE:
-    DDL = 'ddl'
-    DML = 'dml'
-    DCL = 'dcl'
+from utils import iterchild
 
 
 class MyListener(MySqlParserListener):
-    def __init__(self, handle):
-        self.w_handle = handle
-
-    def _set_data(self, name, value):
-        self.w_handle.set_tokens(name, value)
+    def __init__(self, ret):
+        self.ret = ret
 
     def enterDdlStatement(self, ctx):
-        self._set_data(TABLE_ATTR_MAP.sqltype, SQL_TYPE.DDL)
+        self.ret['type'] = 'ddl'
 
-    def enterDmlStatement(self, ctx):
-        self._set_data(TABLE_ATTR_MAP.sqltype, SQL_TYPE.DML)
+    def enterAlterTable(self, ctx):
+        data = {}
+        self.ret['data'] = {
+            'type': 'altertable',
+            'data': data
+        }
+        alter_data = data.setdefault('alter_data', [])
 
-    def enterAdministrationStatement(self, ctx):
-        self._set_data(TABLE_ATTR_MAP.sqltype, SQL_TYPE.DCL)
+        children = ctx.children
+        for child in children:
+            if isinstance(child, MySqlParser.TableNameContext):
+                data['tablename'] = self._get_last_name(child)
+            if isinstance(child, MySqlParser.AlterByAddColumnContext):
+                alter_data.append({
+                    "type": 'addcolumn',
+                    "data": self._enterAlterByAddColumn(child)
+                })
+            if isinstance(child, MySqlParser.AlterByModifyColumnContext):
+                alter_data.append({
+                    "type": 'modifycolumn',
+                    "data": self._enterAlterByModifyColumn(child)
+                })
+            if isinstance(child, MySqlParser.AlterByChangeColumnContext):
+                alter_data.append({
+                    "type": 'modifycolumn',
+                    "data": self._enterAlterByChangeColumn(child)
+                })
+            if isinstance(child, MySqlParser.AlterByAddIndexContext):
+                alter_data.append({
+                    "type": 'addindex',
+                    "data": self._enterAlterByAddIndex(child)
+                })
+            if isinstance(child, MySqlParser.AlterByAddUniqueKeyContext):
+                alter_data.append({
+                    "type": 'addindex',
+                    "data": self._enterAlterByAddIndex(child)
+                })
+            if isinstance(child, MySqlParser.AlterByDropColumnContext):
+                alter_data.append({
+                    "type": 'dropcolumn',
+                    "data": self._enterAlterByDropColumn(child)
+                })
 
-    # table name
-    def enterTableName(self, ctx):
-        value = ctx.getText()
-        self._set_data(TABLE_ATTR_MAP.tablename, value)
+    @iterchild
+    def _enterAlterByDropColumn(self, child, ret):
+        if isinstance(child, MySqlParser.UidContext):
+            ret['columnname'] = self._get_last_name(child)
 
-    # table index Column Names
-    def enterIndexColumnNames(self, ctx):
-        value = ctx.getText()
-        self._set_data(TABLE_ATTR_MAP.indexname, value)
+    @iterchild
+    def _enterAlterByAddIndex(self, child, ret):
+        columnnames = []
+        if isinstance(child, MySqlParser.UidContext):
+            ret['indexname'] = self._get_last_name(child)
+        if isinstance(child, MySqlParser.IndexColumnNamesContext):
+            columnnames = self._enterIndexColumnNames(child).get('columns', [])
 
-    # statement uid
-    def enterUid(self, ctx):
-        value = ctx.getText()
-        # self.set_data(TABLE_ATTR_MAP.alluid, value)
+        ret['indexdefinition'] = {
+            'columnnames': columnnames
+        }
 
-        if not (isinstance(ctx.parentCtx, (
-            MySqlParser.UniqueKeyTableConstraintContext,
-            MySqlParser.ForeignKeyTableConstraintContext,
-            MySqlParser.SimpleIndexDeclarationContext,
-            MySqlParser.SpecialIndexDeclarationContext,
-            MySqlParser.IndexColumnNameContext,
-        )) or isinstance(ctx.parentCtx.parentCtx, MySqlParser.TableNameContext)):
-            self._set_data(TABLE_ATTR_MAP.columnnames, value)
+    @iterchild
+    def _enterIndexColumnNames(self, child, ret):
+        if isinstance(child, MySqlParser.IndexColumnNameContext):
+            columns = ret.setdefault('columns', [])
+            columns.append(self._get_last_name(child))
 
-    # PrimaryKey Column
-    def enterPrimaryKeyColumnConstraint(self, ctx):
-        if isinstance(ctx.parentCtx.parentCtx, MySqlParser.ColumnDeclarationContext):
-            value = ctx.parentCtx.parentCtx.children[0].getText()
-            self._set_data(TABLE_ATTR_MAP.primarykey, "({0})".format(value))
+    @iterchild
+    def _enterAlterByChangeColumn(self, child, ret):
+        if isinstance(child, MySqlParser.UidContext):
+            if ret.get('columnname'):
+                ret['new_columnname'] = self._get_last_name(child)
+            else:
+                ret['columnname'] = self._get_last_name(child)
+        if isinstance(child, MySqlParser.ColumnDefinitionContext):
+            ret['columndefinition'] = self._enterColumnDefinition(child)
 
-    # UniqueKey Column
-    def enterUniqueKeyColumnConstraint(self, ctx):
-        if isinstance(ctx.parentCtx.parentCtx, MySqlParser.ColumnDeclarationContext):
-            value = ctx.parentCtx.parentCtx.children[0].getText()
-            self._set_data(TABLE_ATTR_MAP.uniquekey, "({0})".format(value))
+    @iterchild
+    def _enterAlterByModifyColumn(self, child, ret):
+        if isinstance(child, MySqlParser.UidContext):
+            ret['columnname'] = self._get_last_name(child)
+        if isinstance(child, MySqlParser.ColumnDefinitionContext):
+            ret['columndefinition'] = self._enterColumnDefinition(child)
+
+    @iterchild
+    def _enterAlterByAddColumn(self, child, ret):
+        if isinstance(child, MySqlParser.UidContext):
+            ret['columnname'] = self._get_last_name(child)
+        if isinstance(child, MySqlParser.ColumnDefinitionContext):
+            ret['columndefinition'] = self._enterColumnDefinition(child)
+
+    @iterchild
+    def _enterColumnDefinition(self, child, ret):
+        if isinstance(child, MySqlParser.StringDataTypeContext):
+            ret.update(self._enterStringDataType(child))
+        if isinstance(child, MySqlParser.DimensionDataTypeContext):
+            ret.update(self._enterDimensionDataType(child))
+
+    @iterchild
+    def _enterDimensionDataType(self, child, ret):
+        ret.update({
+            'column_types': self._get_last_name(child),
+            'data': {}
+        })
+
+    @iterchild
+    def _enterStringDataType(self, child, ret):
+        if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
+            ret['column_type'] = self._get_last_name(child)
+        if isinstance(child, MySqlParser.LengthOneDimensionContext):
+            ret['data'] = self._enterLengthOneDimension(child)
+
+    @iterchild
+    def _enterLengthOneDimension(self, child, ret):
+        if isinstance(child, MySqlParser.DecimalLiteralContext):
+            ret['decimalliteral'] = self._get_last_name(child)
+
+    @staticmethod
+    def _get_last_name(ctx):
+        while hasattr(ctx, 'children'):
+            ctx = ctx.children[0]
+
+        return ctx.symbol.text
 
 
 class CaseChangingCharInputStream(InputStream):
@@ -109,19 +173,17 @@ class SqlParseHandle(object):
         self.token_stream = CommonTokenStream(self.lexer)
         self.parser = MySqlParser(self.token_stream)
         self.tree = self.parser.root()
-        self.printer = MyListener(self)
+        self.printer = MyListener(self._tokens)
         self.walker = ParseTreeWalker()
-        self.walker.walk(self.printer, self.tree)
 
     def get_tokens(self):
+        self.walker.walk(self.printer, self.tree)
         return self._tokens
-
-    def set_tokens(self, name, value):
-        value = value.replace('`', '')
-        if value.startswith("("): value = value[1:]
-        if value.endswith(")"): value = value[:-1]
-        self._tokens.setdefault(name, []).append(value)
 
 
 def mysql_token_parser(sql):
-    return SqlParseHandle(sql)
+    return SqlParseHandle(sql).get_tokens()
+
+
+if __name__ == "__main__":
+    print mysql_token_parser(u"""""")
