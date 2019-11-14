@@ -69,4 +69,5 @@ def mysql_token_parser(sql):
 
 
 if __name__ == "__main__":
-    print mysql_token_parser(u"""""")
+    print mysql_token_parser(u"""ALTER TABLE t_a_gun2_6_dw_pfm_emp_cm ADD INDEX
+        idx_eob_date(empid_org_bus (200),pfm_date);""")

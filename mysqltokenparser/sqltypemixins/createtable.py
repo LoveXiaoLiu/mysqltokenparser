@@ -1,6 +1,6 @@
 # coding: utf-8
-from mysqltokenparser.utils import iterchild
-from mysqltokenparser.MySqlParser import MySqlParser
+from utils import iterchild
+from MySqlParser import MySqlParser
 
 
 class CreateTableMixin:
