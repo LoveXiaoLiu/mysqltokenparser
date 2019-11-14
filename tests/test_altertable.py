@@ -5,9 +5,6 @@ import pytest
 from helper import mysqltokenparser as mtp
 
 
-table_attr_map = mtp.TABLE_ATTR_MAP
-
-
 def test_altertable_addcolumns():
     sql = u"ALTER TABLE tab_name ADD address01  varchar(100) NOT NULL \
         DEFAULT '' COMMENT '地址1' , ADD address02  varchar(100) NOT \

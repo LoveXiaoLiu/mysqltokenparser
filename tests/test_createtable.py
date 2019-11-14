@@ -5,11 +5,7 @@
 
 import pytest
 
-
 from helper import mysqltokenparser as mtp
-
-
-table_attr_map = mtp.TABLE_ATTR_MAP
 
 
 @pytest.fixture
@@ -28,50 +24,39 @@ def test_createtable(response):
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
 
     sql = u"""
-            CREATE TABLE `aaa`.`t_zcm_operation_luck_award_record` (
-      `id` bigint(20) NOT NULL,
-      `operation_seq` varchar(30) NOT NULL,
-      `award_user_id` bigint(20) NOT NULL,
-      `award_type` int(11) DEFAULT NULL,
-      `award_id` varchar(40) DEFAULT NULL UNIQUE KEY,
-      `award_content` varchar(20)  DEFAULT NULL,
-      `award_reason` varchar(30)  DEFAULT NULL,
-      `award_source` int(11) DEFAULT NULL,
-      `state` tinyint(4) NOT NULL PRIMARY KEY,
-      `addtime` datetime NOT NULL,
-      `updatetime` datetime NOT NULL,
-      `ip` varchar(50)  DEFAULT NULL,
-      `imei` varchar(50)  DEFAULT NULL,
-      `intext` int(11) DEFAULT NULL,
-      `longext` bigint(20) DEFAULT NULL,
-      `strext` varchar(200)  DEFAULT NULL,
-      PRIMARY KEY (id),
-      UNIQUE KEY `idx_op_seq_uid_type` (`operation_seq`,`award_user_id`,`award_type`),
-      KEY `idx_op_uid_type` (`award_user_id`,`award_type`),
-      KEY `idx_op_uid_sss` (longext(10))
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            CREATE TABLE tab_name (
+  id     		int         NOT NULL AUTO_INCREMENT COMMENT '主键',
+  uid 			int         NOT NULL COMMENT '唯一流水id',
+  name			varchar(20) NOT NULL DEFAULT '' COMMENT '名称',
+  amount 		int         NOT NULL DEFAULT 0 COMMENT '数量',
+  create_date	date        NOT NULL DEFAULT '1000-01-01' COMMENT '创建日期',
+  create_time	datetime    DEFAULT '1000-01-01 00:00:00' COMMENT '创建时间',
+  update_time 	timestamp   default current_timestamp on update current_timestamp COMMENT '更新时间(会自动更新，不需要刻意程序更新)',
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_uid (uid, ccccc),
+  KEY idx_name (name, wwwww),
+  KEY idx_cscscsc (data, nunm, ssw)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='测试表';
     """
 
-    token_obj = mtp.mysql_token_parser(sql)
-    tokens = token_obj.get_tokens()
+    tokens = mtp.mysql_token_parser(sql)
     assert isinstance(tokens, dict)
 
-    hope_tablename = "aaa.t_zcm_operation_luck_award_record"
-    tablename = tokens.get(table_attr_map.tablename)
-    assert isinstance(tablename, list)
-    assert hope_tablename in tablename
+    hope_tablename = 'tab_name'
+    assert hope_tablename == tokens['data']['data']['tablename']
 
-    hope_columnnames = [
-        u'id', u'operation_seq', u'award_user_id', u'award_type',
-        u'award_id', u'award_content', u'award_reason', u'award_source',
-        u'state', u'addtime', u'updatetime', u'ip', u'imei', u'intext', u'longext', u'strext'
-    ]
-    columnnames = tokens.get(table_attr_map.columnnames)
-    assert isinstance(columnnames, list)
-    assert len(columnnames) == len(hope_columnnames)
-    for hc in hope_columnnames:
-        assert hc in columnnames
+    hope_engine = 'InnoDB'
+    assert hope_engine == tokens['data']['data']['engine']
 
-    hope_sqltype = 'ddl'
-    sqltype = tokens.get(table_attr_map.sqltype)
-    assert hope_sqltype in sqltype
+    hope_charset = 'utf8'
+    assert hope_charset == tokens['data']['data']['charset']
+
+    hope_column_len = 7
+    assert hope_column_len == len(tokens['data']['data']['createdefinitions']['columns'])
+
+    hope_common_index_len = 2
+    assert hope_common_index_len == len(tokens['data']['data']['createdefinitions']['indexs']['common_key'])
+
+    hope_columnname = ["id", "uid", "name", "amount", "create_date", "create_time", "update_time"]
+    for i in tokens['data']['data']['createdefinitions']['columns']:
+        assert i['columnname'] in hope_columnname
