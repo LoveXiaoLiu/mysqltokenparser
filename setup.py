@@ -21,7 +21,7 @@ setup(
     author="gra55",
     author_email='shuai.grass@gmail.com',
     classifiers=[
-        'Development Status ::  5 - Production/Stable',
+        'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
