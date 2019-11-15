@@ -7,5 +7,6 @@ __email__ = 'shuai.grass@gmail.com'
 __version__ = '2.1.1'
 
 from .mysqltokenparser import mysql_token_parser
+from .utils import *
 
 __all__ = ['mysql_token_parser']
