@@ -1,5 +1,5 @@
 # coding: utf-8
-from mysqltokenparser.utils import iterchild
+from mysqltokenparser.utils import iterchild, CREATE_TABLE
 from mysqltokenparser.MySqlParser import MySqlParser
 
 
@@ -7,7 +7,7 @@ class CreateTableMixin:
     def enterColumnCreateTable(self, ctx):
         data = {}
         self.ret['data'] = {
-            'type': 'createtable',
+            'type': CREATE_TABLE,
             'data': data
         }
 

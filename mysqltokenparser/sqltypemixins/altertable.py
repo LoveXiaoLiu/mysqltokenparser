@@ -1,7 +1,8 @@
 # coding: utf-8
 import antlr4
 
-from mysqltokenparser.utils import iterchild
+from mysqltokenparser.utils import (
+    iterchild, ALTER_TABLE, ADD_COLUMN, MODIFY_COLUMN, CHANGE_COLUMN, ADD_INDEX, DROP_COLUMN)
 from mysqltokenparser.MySqlParser import MySqlParser
 
 
@@ -9,7 +10,7 @@ class AlterTableMixin:
     def enterAlterTable(self, ctx):
         data = {}
         self.ret['data'] = {
-            'type': 'altertable',
+            'type': ALTER_TABLE,
             'data': data
         }
         alter_data = data.setdefault('alter_data', [])
@@ -20,32 +21,32 @@ class AlterTableMixin:
                 data['tablename'] = self._get_last_name(child)
             if isinstance(child, MySqlParser.AlterByAddColumnContext):
                 alter_data.append({
-                    "type": 'addcolumn',
+                    "type": ADD_COLUMN,
                     "data": self._enterAlterByAddColumn(child)
                 })
             if isinstance(child, MySqlParser.AlterByModifyColumnContext):
                 alter_data.append({
-                    "type": 'modifycolumn',
+                    "type": MODIFY_COLUMN,
                     "data": self._enterAlterByModifyColumn(child)
                 })
             if isinstance(child, MySqlParser.AlterByChangeColumnContext):
                 alter_data.append({
-                    "type": 'modifycolumn',
+                    "type": CHANGE_COLUMN,
                     "data": self._enterAlterByChangeColumn(child)
                 })
             if isinstance(child, MySqlParser.AlterByAddIndexContext):
                 alter_data.append({
-                    "type": 'addindex',
+                    "type": ADD_INDEX,
                     "data": self._enterAlterByAddIndex(child)
                 })
             if isinstance(child, MySqlParser.AlterByAddUniqueKeyContext):
                 alter_data.append({
-                    "type": 'addindex',
+                    "type": ADD_INDEX,
                     "data": self._enterAlterByAddIndex(child)
                 })
             if isinstance(child, MySqlParser.AlterByDropColumnContext):
                 alter_data.append({
-                    "type": 'dropcolumn',
+                    "type": DROP_COLUMN,
                     "data": self._enterAlterByDropColumn(child)
                 })
 
