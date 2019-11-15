@@ -45,6 +45,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/LoveXiaoLiu/mysqltokenparser',
-    version='2.1.1',
+    version='2.1.2',
     zip_safe=False,
 )
