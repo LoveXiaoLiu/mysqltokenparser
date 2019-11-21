@@ -3,7 +3,7 @@ import antlr4
 
 from mysqltokenparser.utils import iterchild
 from mysqltokenparser.MySqlParser import MySqlParser
-from mysqltokenparser.constant import DDL_TYPE_ALTERTABLE
+from mysqltokenparser.constant import *
 
 
 class AlterTableMixin:
@@ -18,7 +18,7 @@ class AlterTableMixin:
         children = ctx.children
         for child in children:
             if isinstance(child, MySqlParser.TableNameContext):
-                data['tablename'] = self._get_last_name(child)
+                data[TABLE_NAME] = self._get_last_name(child)
             if isinstance(child, MySqlParser.AlterByAddColumnContext):
                 alter_data.append({
                     "type": 'addcolumn',
@@ -53,18 +53,18 @@ class AlterTableMixin:
     @iterchild
     def _enterAlterByDropColumn(self, child, ret):
         if isinstance(child, MySqlParser.UidContext):
-            ret['columnname'] = self._get_last_name(child)
+            ret[COLUMN_NAME] = self._get_last_name(child)
 
     @iterchild
     def _enterAlterByAddIndex(self, child, ret):
         columnnames = []
         if isinstance(child, MySqlParser.UidContext):
-            ret['indexname'] = self._get_last_name(child)
+            ret[INDEX_NAME] = self._get_last_name(child)
         if isinstance(child, MySqlParser.IndexColumnNamesContext):
             columnnames = self._enterIndexColumnNames(child).get('columns', [])
 
-        ret['indexdefinition'] = {
-            'columnnames': columnnames
+        ret[INDEX_DEFINITION] = {
+            COLUMN_NAME: columnnames
         }
 
     @iterchild
@@ -76,26 +76,26 @@ class AlterTableMixin:
     @iterchild
     def _enterAlterByChangeColumn(self, child, ret):
         if isinstance(child, MySqlParser.UidContext):
-            if ret.get('columnname'):
+            if ret.get(COLUMN_NAME):
                 ret['new_columnname'] = self._get_last_name(child)
             else:
-                ret['columnname'] = self._get_last_name(child)
+                ret[COLUMN_NAME] = self._get_last_name(child)
         if isinstance(child, MySqlParser.ColumnDefinitionContext):
-            ret['columndefinition'] = self._enterColumnDefinition(child)
+            ret[COLUMN_DEFINITION] = self._enterColumnDefinition(child)
 
     @iterchild
     def _enterAlterByModifyColumn(self, child, ret):
         if isinstance(child, MySqlParser.UidContext):
-            ret['columnname'] = self._get_last_name(child)
+            ret[COLUMN_NAME] = self._get_last_name(child)
         if isinstance(child, MySqlParser.ColumnDefinitionContext):
-            ret['columndefinition'] = self._enterColumnDefinition(child)
+            ret[COLUMN_DEFINITION] = self._enterColumnDefinition(child)
 
     @iterchild
     def _enterAlterByAddColumn(self, child, ret):
         if isinstance(child, MySqlParser.UidContext):
-            ret['columnname'] = self._get_last_name(child)
+            ret[COLUMN_NAME] = self._get_last_name(child)
         if isinstance(child, MySqlParser.ColumnDefinitionContext):
-            ret['columndefinition'] = self._enterColumnDefinition(child)
+            ret[COLUMN_DEFINITION] = self._enterColumnDefinition(child)
 
     @iterchild
     def _enterColumnDefinition(self, child, ret):
@@ -106,28 +106,68 @@ class AlterTableMixin:
         if isinstance(child, MySqlParser.SimpleDataTypeContext):
             ret.update(self._enterSimpleDataType(child))
 
+        if isinstance(child, MySqlParser.NullColumnConstraintContext):
+            ret.update(self._enterNullColumnConstraint(child))
+        if isinstance(child, MySqlParser.AutoIncrementColumnConstraintContext):
+            ret.update(self._enterAutoIncrementColumnConstraint(child))
+        if isinstance(child, MySqlParser.CommentColumnConstraintContext):
+            ret.update(self._enterCommentColumnConstraint(child))
+        if isinstance(child, MySqlParser.PrimaryKeyColumnConstraintContext):
+            ret.update(self._enterPrimaryKeyColumnConstraint(child))
+
+    def _enterPrimaryKeyColumnConstraint(self, ctx):
+        return {
+            PRIMARY_KEY: True
+        }
+
+    def _enterCommentColumnConstraint(self, ctx):
+        return {
+            'comment': self._get_last_name(ctx.children[1])
+        }
+
+    def _enterAutoIncrementColumnConstraint(self, ctx):
+        return {
+            'auto_increment': True
+        }
+
+    @iterchild
+    def _enterNullColumnConstraint(self, child, ret):
+        if isinstance(child, MySqlParser.NullNotnullContext):
+            ret['null'] = False
+
     @iterchild
     def _enterSimpleDataType(self, child, ret):
         ret.update({
-            'column_types': self._get_last_name(child),
-            'data': {}
+            COLUMN_TYPE: self._get_last_name(child),
+            COLUMN_TYPE_DATA: {}
         })
 
     @iterchild
     def _enterDimensionDataType(self, child, ret):
-        ret.update({
-            'column_types': self._get_last_name(child),
-            'data': {}
-        })
+        if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
+            ret[COLUMN_TYPE] = self._get_last_name(child)
+        if isinstance(child, MySqlParser.LengthOneDimensionContext):
+            ret[COLUMN_TYPE_DATA] = self._enterLengthOneDimension(child)
+        if isinstance(child, MySqlParser.LengthTwoDimensionContext):
+            ret[COLUMN_TYPE_DATA] = self._enterLengthTwoDimension(child)
+        if isinstance(child, MySqlParser.LengthTwoOptionalDimensionContext):
+            ret[COLUMN_TYPE_DATA] = self._enterLengthTwoDimension(child)
 
     @iterchild
     def _enterStringDataType(self, child, ret):
         if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
-            ret['column_type'] = self._get_last_name(child)
+            ret[COLUMN_TYPE] = self._get_last_name(child)
         if isinstance(child, MySqlParser.LengthOneDimensionContext):
-            ret['data'] = self._enterLengthOneDimension(child)
+            ret[COLUMN_TYPE_DATA] = self._enterLengthOneDimension(child)
+
+    @iterchild
+    def _enterLengthTwoDimension(self, child, ret):
+        if isinstance(child, MySqlParser.DecimalLiteralContext):
+            decimal_literal = ret.setdefault('decimal_literal', [])
+            decimal_literal.append(self._get_last_name(child))
 
     @iterchild
     def _enterLengthOneDimension(self, child, ret):
         if isinstance(child, MySqlParser.DecimalLiteralContext):
-            ret['decimalliteral'] = self._get_last_name(child)
+            decimal_literal = ret.setdefault('decimal_literal', [])
+            decimal_literal.append(self._get_last_name(child))

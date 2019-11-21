@@ -6,6 +6,7 @@
 import pytest
 
 from helper import mysqltokenparser as mtp
+from helper import constant as _c
 
 
 @pytest.fixture
@@ -25,10 +26,11 @@ def test_createtable(response):
 
     sql = u"""
             CREATE TABLE tab_name (
-  id     		int         NOT NULL AUTO_INCREMENT COMMENT '主键',
-  uid 			int         NOT NULL COMMENT '唯一流水id',
+  id     		int         NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+  uid 			int(2)         NOT NULL COMMENT '唯一流水id',
+  okmysite 			DECIMAL(6,2)   NOT NULL COMMENT 'cccc',
   name			varchar(20) NOT NULL DEFAULT '' COMMENT '名称',
-  amount 		int         NOT NULL DEFAULT 0 COMMENT '数量',
+  amount 		DOUBLE(6,2)         NOT NULL DEFAULT 0 COMMENT '数量',
   create_date	date        NOT NULL DEFAULT '1000-01-01' COMMENT '创建日期',
   create_time	datetime    DEFAULT '1000-01-01 00:00:00' COMMENT '创建时间',
   update_time 	timestamp   default current_timestamp on update current_timestamp COMMENT '更新时间(会自动更新，不需要刻意程序更新)',
@@ -44,20 +46,20 @@ def test_createtable(response):
     assert isinstance(tokens, dict)
 
     hope_tablename = 'tab_name'
-    assert hope_tablename == tokens['data']['data']['table_name']
+    assert hope_tablename == tokens['data']['data'][_c.TABLE_NAME]
 
     hope_engine = 'InnoDB'
-    assert hope_engine == tokens['data']['data']['engine']
+    assert hope_engine == tokens['data']['data'][_c.TABLE_OPTION_ENGINE]
 
     hope_charset = 'utf8'
-    assert hope_charset == tokens['data']['data']['charset']
+    assert hope_charset == tokens['data']['data'][_c.TABLE_OPTION_CHARSET]
 
-    hope_column_len = 7
-    assert hope_column_len == len(tokens['data']['data']['create_definitions']['columns'])
+    hope_column_len = 8
+    assert hope_column_len == len(tokens['data']['data'][_c.CREATE_DEFINITIONS]['columns'])
 
     hope_common_index_len = 2
-    assert hope_common_index_len == len(tokens['data']['data']['create_definitions']['indexs']['common_key'])
+    assert hope_common_index_len == len(tokens['data']['data'][_c.CREATE_DEFINITIONS]['indexs'][_c.COMMON_KEY])
 
-    hope_columnname = ["id", "uid", "name", "amount", "create_date", "create_time", "update_time"]
-    for i in tokens['data']['data']['create_definitions']['columns']:
-        assert i['columnname'] in hope_columnname
+    hope_columnname = ["id", "uid", "name", "amount", "create_date", "create_time", "update_time", "okmysite"]
+    for i in tokens['data']['data'][_c.CREATE_DEFINITIONS]['columns']:
+        assert i[_c.COLUMN_NAME] in hope_columnname

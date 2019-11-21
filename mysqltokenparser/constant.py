@@ -1,5 +1,18 @@
 # coding: utf-8
 
+# common
+COLUMN_NAME = 'column_name'
+COLUMN_DEFINITION = 'column_definition'
+COLUMN_TYPE = 'column_type'
+COLUMN_TYPE_DATA = 'column_type_data'
+TABLE_NAME = 'table_name'
+CREATE_DEFINITIONS = 'create_definitions'
+INDEX_NAME = 'index_name'
+INDEX_DEFINITION = 'index_definition'
+PRIMARY_KEY = 'primary_key'
+UNIQUE_KEY = 'unique_key'
+COMMON_KEY = 'common_key'
+
 # sql type
 SQL_TYPE_DDL = 'ddl'
 SQL_TYPE_DML = 'dml'

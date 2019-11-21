@@ -6,3 +6,4 @@ sys.path.insert(0, os.path.abspath(
 ))
 
 from mysqltokenparser import mysqltokenparser
+from mysqltokenparser import constant
