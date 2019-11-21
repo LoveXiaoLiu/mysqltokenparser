@@ -3,13 +3,14 @@ import antlr4
 
 from mysqltokenparser.utils import iterchild
 from mysqltokenparser.MySqlParser import MySqlParser
+from mysqltokenparser.constant import DDL_TYPE_ALTERTABLE
 
 
 class AlterTableMixin:
     def enterAlterTable(self, ctx):
         data = {}
         self.ret['data'] = {
-            'type': 'altertable',
+            'type': DDL_TYPE_ALTERTABLE,
             'data': data
         }
         alter_data = data.setdefault('alter_data', [])

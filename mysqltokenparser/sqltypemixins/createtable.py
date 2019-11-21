@@ -1,26 +1,37 @@
 # coding: utf-8
 from mysqltokenparser.utils import iterchild
 from mysqltokenparser.MySqlParser import MySqlParser
+from mysqltokenparser.constant import *
 
 
 class CreateTableMixin:
+    """
+    create table type: copyCreateTable queryCreateTable columnCreateTable
+
+    just support columnCreateTable.
+    """
     def enterColumnCreateTable(self, ctx):
         data = {}
         self.ret['data'] = {
-            'type': 'createtable',
+            'type': DDL_TYPE_CREATETABLE,
             'data': data
         }
 
         children = ctx.children
         for child in children:
             if isinstance(child, MySqlParser.TableNameContext):
-                data['tablename'] = self._get_last_name(child)
+                data['table_name'] = self._get_last_name(child)
+
             if isinstance(child, MySqlParser.CreateDefinitionsContext):
-                data['createdefinitions'] = self._enterCreateDefinitions(child)
+                data['create_definitions'] = self._enterCreateDefinitions(child)
+
             if isinstance(child, MySqlParser.TableOptionEngineContext):
-                data.update(self._enterTableOptionEngine(child))
+                data[TABLE_OPTION_ENGINE] = self._enterTableOptionEngine(
+                    child).get(TABLE_OPTION_ENGINE)
+
             if isinstance(child, MySqlParser.TableOptionCharsetContext):
-                data.update(self._enterTableOptionCharset(child))
+                data[TABLE_OPTION_CHARSET] = self._enterTableOptionCharset(
+                    child).get(TABLE_OPTION_CHARSET)
 
     @iterchild
     def _enterTableOptionCharset(self, child, ret):

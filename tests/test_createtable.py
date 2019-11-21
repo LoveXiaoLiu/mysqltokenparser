@@ -40,10 +40,11 @@ def test_createtable(response):
     """
 
     tokens = mtp.mysql_token_parser(sql)
+    print(tokens)
     assert isinstance(tokens, dict)
 
     hope_tablename = 'tab_name'
-    assert hope_tablename == tokens['data']['data']['tablename']
+    assert hope_tablename == tokens['data']['data']['table_name']
 
     hope_engine = 'InnoDB'
     assert hope_engine == tokens['data']['data']['engine']
@@ -52,11 +53,11 @@ def test_createtable(response):
     assert hope_charset == tokens['data']['data']['charset']
 
     hope_column_len = 7
-    assert hope_column_len == len(tokens['data']['data']['createdefinitions']['columns'])
+    assert hope_column_len == len(tokens['data']['data']['create_definitions']['columns'])
 
     hope_common_index_len = 2
-    assert hope_common_index_len == len(tokens['data']['data']['createdefinitions']['indexs']['common_key'])
+    assert hope_common_index_len == len(tokens['data']['data']['create_definitions']['indexs']['common_key'])
 
     hope_columnname = ["id", "uid", "name", "amount", "create_date", "create_time", "update_time"]
-    for i in tokens['data']['data']['createdefinitions']['columns']:
+    for i in tokens['data']['data']['create_definitions']['columns']:
         assert i['columnname'] in hope_columnname
