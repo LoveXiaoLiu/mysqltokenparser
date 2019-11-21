@@ -114,6 +114,13 @@ class AlterTableMixin:
             ret.update(self._enterCommentColumnConstraint(child))
         if isinstance(child, MySqlParser.PrimaryKeyColumnConstraintContext):
             ret.update(self._enterPrimaryKeyColumnConstraint(child))
+        if isinstance(child, MySqlParser.DefaultColumnConstraintContext):
+            ret.update(self._enterDefaultColumnConstraint(child))
+
+    @iterchild
+    def _enterDefaultColumnConstraint(self, child, ret):
+        if isinstance(child, MySqlParser.DefaultValueContext):
+            ret['default'] = self._get_last_name(child)
 
     def _enterPrimaryKeyColumnConstraint(self, ctx):
         return {

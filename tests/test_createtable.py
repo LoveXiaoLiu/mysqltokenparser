@@ -26,19 +26,19 @@ def test_createtable(response):
 
     sql = u"""
             CREATE TABLE tab_name (
-  id     		int         NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
-  uid 			int(2)         NOT NULL COMMENT '唯一流水id',
-  okmysite 			DECIMAL(6,2)   NOT NULL COMMENT 'cccc',
-  name			varchar(20) NOT NULL DEFAULT '' COMMENT '名称',
-  amount 		DOUBLE(6,2)         NOT NULL DEFAULT 0 COMMENT '数量',
-  create_date	date        NOT NULL DEFAULT '1000-01-01' COMMENT '创建日期',
-  create_time	datetime    DEFAULT '1000-01-01 00:00:00' COMMENT '创建时间',
-  update_time 	timestamp   default current_timestamp on update current_timestamp COMMENT '更新时间(会自动更新，不需要刻意程序更新)',
+  id    int         NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+  uid   int(2)         NOT NULL COMMENT '唯一流水id',
+  okmysite  DECIMAL(6,2)   NOT NULL COMMENT 'cccc',
+  name  varchar(20) NOT NULL DEFAULT '' COMMENT '名称',
+  amount    DOUBLE(6,2)         NOT NULL DEFAULT 0 COMMENT '数量',
+  create_date   date        NOT NULL DEFAULT '1000-01-01' COMMENT '创建日期',
+  create_time   datetime    DEFAULT '1000-01-01 00:00:00' COMMENT '创建时间',
+  update_time   timestamp   default current_timestamp on update current_timestamp COMMENT '更新时间(会自动更新，不需要刻意程序更新)',
   PRIMARY KEY (id),
   UNIQUE KEY uniq_uid (uid, ccccc),
   KEY idx_name (name, wwwww),
   KEY idx_cscscsc (data, nunm, ssw)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='测试表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='cs';
     """
 
     tokens = mtp.mysql_token_parser(sql)
