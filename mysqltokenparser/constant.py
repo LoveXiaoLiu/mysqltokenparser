@@ -117,6 +117,13 @@ DML_TYPE_LOADXMLSTATEMENT = 'loadxml'
 DML_TYPE_DOSTATEMENT = 'do'
 DML_TYPE_HANDLERSTATEMENT = 'handler'
 
+# select type
+SELECT_TYPE_SIMPLESELECT = 'simpleselect'
+SELECT_TYPE_PARENTHESISSELECT = 'parenthesisselect'
+SELECT_TYPE_UNIONSELECT = 'unionselect'
+SELECT_TYPE_UNIONPARENTHESISSELECT = 'unionparenthesisselect'
+
+
 # table option
 TABLE_OPTION_ENGINE = 'engine'
 TABLE_OPTION_AUTOINCREMENT = 'autoincrement'

@@ -1,2 +1,5 @@
 # coding: utf-8
 
+from altertable import *
+from createtable import *
+from select import *

@@ -8,17 +8,22 @@ from antlr4 import CommonTokenStream, ParseTreeWalker, FileStream
 from MySqlLexer import MySqlLexer
 from MySqlParser import MySqlParser
 from MySqlParserListener import MySqlParserListener
-from sqltypemixins.altertable import AlterTableMixin
-from sqltypemixins.createtable import CreateTableMixin
-from constant import SQL_TYPE_DDL
+from sqltypemixins import (
+    AlterTableMixin, CreateTableMixin, SelectMixin
+)
+from constant import *
 
 
-class MyListener(AlterTableMixin, CreateTableMixin, MySqlParserListener):
+class MyListener(
+    AlterTableMixin, CreateTableMixin, SelectMixin, MySqlParserListener):
     def __init__(self, ret):
         self.ret = ret
 
     def enterDdlStatement(self, ctx):
         self.ret['type'] = SQL_TYPE_DDL
+
+    def enterDmlStatement(self, ctx):
+        self.ret['type'] = SQL_TYPE_DML
 
     @staticmethod
     def _get_last_name(ctx):
