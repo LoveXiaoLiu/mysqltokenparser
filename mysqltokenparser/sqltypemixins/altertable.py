@@ -21,34 +21,54 @@ class AlterTableMixin:
                 data[TABLE_NAME] = self._get_last_name(child)
             if isinstance(child, MySqlParser.AlterByAddColumnContext):
                 alter_data.append({
-                    "type": 'addcolumn',
+                    "type": ALTER_TABLE_TYPE_ADDCOLUMN,
                     "data": self._enterAlterByAddColumn(child)
                 })
             if isinstance(child, MySqlParser.AlterByModifyColumnContext):
                 alter_data.append({
-                    "type": 'modifycolumn',
+                    "type": ALTER_TABLE_TYPE_MODIFYCOLUMN,
                     "data": self._enterAlterByModifyColumn(child)
                 })
             if isinstance(child, MySqlParser.AlterByChangeColumnContext):
                 alter_data.append({
-                    "type": 'modifycolumn',
+                    "type": ALTER_TABLE_TYPE_CHANGECOLUMN,
                     "data": self._enterAlterByChangeColumn(child)
                 })
             if isinstance(child, MySqlParser.AlterByAddIndexContext):
                 alter_data.append({
-                    "type": 'addindex',
+                    "type": ALTER_TABLE_TYPE_ADDINDEX,
+                    "data": self._enterAlterByAddIndex(child)
+                })
+            if isinstance(child, MySqlParser.AlterByAddPrimaryKeyContext):
+                alter_data.append({
+                    "type": ALTER_TABLE_TYPE_ADDPRIMARYKEY,
                     "data": self._enterAlterByAddIndex(child)
                 })
             if isinstance(child, MySqlParser.AlterByAddUniqueKeyContext):
                 alter_data.append({
-                    "type": 'addindex',
+                    "type": ALTER_TABLE_TYPE_ADDUNIQUEKEY,
                     "data": self._enterAlterByAddIndex(child)
                 })
             if isinstance(child, MySqlParser.AlterByDropColumnContext):
                 alter_data.append({
-                    "type": 'dropcolumn',
+                    "type": ALTER_TABLE_TYPE_DROPCOLUMN,
                     "data": self._enterAlterByDropColumn(child)
                 })
+            if isinstance(child, MySqlParser.AlterByDropIndexContext):
+                alter_data.append({
+                    "type": ALTER_TABLE_TYPE_DROPINDEX,
+                    "data": self._enterAlterByDropIndex(child)
+                })
+            if isinstance(child, MySqlParser.AlterByDropPrimaryKeyContext):
+                alter_data.append({
+                    "type": ALTER_TABLE_TYPE_DROPPRIMARYKEY,
+                    "data": {}
+                })
+
+    @iterchild
+    def _enterAlterByDropIndex(self, child, ret):
+        if isinstance(child, MySqlParser.UidContext):
+            ret[INDEX_NAME] = self._get_last_name(child)
 
     @iterchild
     def _enterAlterByDropColumn(self, child, ret):
@@ -64,7 +84,7 @@ class AlterTableMixin:
             columnnames = self._enterIndexColumnNames(child).get('columns', [])
 
         ret[INDEX_DEFINITION] = {
-            COLUMN_NAME: columnnames
+            'columns': columnnames
         }
 
     @iterchild
@@ -77,7 +97,7 @@ class AlterTableMixin:
     def _enterAlterByChangeColumn(self, child, ret):
         if isinstance(child, MySqlParser.UidContext):
             if ret.get(COLUMN_NAME):
-                ret['new_columnname'] = self._get_last_name(child)
+                ret['new_column_name'] = self._get_last_name(child)
             else:
                 ret[COLUMN_NAME] = self._get_last_name(child)
         if isinstance(child, MySqlParser.ColumnDefinitionContext):
