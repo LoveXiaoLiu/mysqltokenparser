@@ -30,13 +30,13 @@ A awesome tool that easy to get MySQL's tokens.
 Quickstart
 ----------
 
-0x01 安装
+0x01 Inistall
 
 .. code:: shell
 
    pip install mysqltokenparser
 
-0x02 使用教程
+0x02 Tutorial
 
 .. code:: python
 

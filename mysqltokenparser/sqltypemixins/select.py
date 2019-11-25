@@ -1,4 +1,5 @@
 # coding: utf-8
+import antlr4
 from mysqltokenparser.utils import iterchild
 from mysqltokenparser.MySqlParser import MySqlParser
 from mysqltokenparser.constant import *
@@ -8,6 +9,8 @@ class SelectMixin:
     """
     select type:
         simpleSelect parenthesisSelect unionSelect unionParenthesisSelect
+
+    just support simpleSelect type
     """
     def enterSimpleSelect(self, ctx):
         data = {}
@@ -42,7 +45,49 @@ class SelectMixin:
 
     @iterchild
     def _enterLogicalExpression(self, child, ret):
-        pass
+        where_expression = ret.setdefault('where_expression', [])
+        if isinstance(child, MySqlParser.LogicalExpressionContext):
+            where_expression.append(self._enterLogicalExpression(child).get('where_expression'))
+
+        if isinstance(child, MySqlParser.LogicalOperatorContext):
+            where_expression.append(self._get_last_name(child))
+
+        if isinstance(child, MySqlParser.PredicateExpressionContext):
+            where_expression.append(self._enterPredicateExpression(child).get('where_expression'))
+
+    @iterchild
+    def _enterPredicateExpression(self, child, ret):
+        where_expression = ret.setdefault('where_expression', [])
+        if isinstance(child, MySqlParser.BinaryComparasionPredicateContext):
+            where_expression.extend(self._enterBinaryComparasionPredicate(child).get('where_expression'))
+
+        if isinstance(child, MySqlParser.ExpressionAtomPredicateContext):
+            where_expression.extend(self._enterExpressionAtomPredicate(child).get('where_expression'))
+
+    @iterchild
+    def _enterExpressionAtomPredicate(self, child, ret):
+        where_expression = ret.setdefault('where_expression', [])
+        if isinstance(child, MySqlParser.NestedExpressionAtomContext):
+            where_expression.extend(self._enterNestedExpressionAtom(child).get('where_expression'))
+
+    @iterchild
+    def _enterNestedExpressionAtom(self, child, ret):
+        if isinstance(child, MySqlParser.LogicalExpressionContext):
+            ret.update(self._enterLogicalExpression(child))
+
+    @iterchild
+    def _enterBinaryComparasionPredicate(self, child, ret):
+        where_expression = ret.setdefault('where_expression', [])
+        if isinstance(child, MySqlParser.ExpressionAtomPredicateContext):
+            where_expression.append(self._get_last_name(child))
+
+        if isinstance(child, MySqlParser.ComparisonOperatorContext):
+            where_expression.append(''.join(self._enterComparisonOperator(child).get('comparison_oper')))
+
+    @iterchild
+    def _enterComparisonOperator(self, child, ret):
+        comparison_oper = ret.setdefault('comparison_oper', [])
+        comparison_oper.append(self._get_last_name(child))
 
     @iterchild
     def _enterTableSources(self, child, ret):
@@ -67,6 +112,10 @@ class SelectMixin:
         select_element = ret.setdefault('select_element', [])
         if isinstance(child, MySqlParser.SelectColumnElementContext):
             select_element.append(self._enterSelectColumnElement(child))
+        if isinstance(child, antlr4.tree.Tree.TerminalNodeImpl):
+            select_element.append({
+                COLUMN_NAME: self._get_last_name(child)
+            })
 
     @iterchild
     def _enterSelectColumnElement(self, child, ret):

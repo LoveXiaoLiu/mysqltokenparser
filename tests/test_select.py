@@ -13,6 +13,9 @@ def test_simpleselect():
     where name='cs' and age=26;
     """
 
-    tokens = mtp.mysql_token_parser(sql)
-    print(tokens)
+    sql2 = """
+    select * from teacher where age<=26 and (sex="man" or age >26) and sex="women";
+    """
+
+    tokens = mtp.mysql_token_parser(sql2)
     assert isinstance(tokens, dict)
