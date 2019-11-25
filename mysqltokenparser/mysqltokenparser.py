@@ -9,13 +9,15 @@ from MySqlLexer import MySqlLexer
 from MySqlParser import MySqlParser
 from MySqlParserListener import MySqlParserListener
 from sqltypemixins import (
-    AlterTableMixin, CreateTableMixin, SelectMixin, InsertMixin
+    AlterTableMixin, CreateTableMixin, SelectMixin, InsertMixin, DeleteMixin
 )
 from constant import *
 
 
 class MyListener(
-    AlterTableMixin, CreateTableMixin, SelectMixin, InsertMixin, MySqlParserListener):
+    AlterTableMixin, CreateTableMixin, SelectMixin, InsertMixin, DeleteMixin,
+    MySqlParserListener
+):
     def __init__(self, ret):
         self.ret = ret
 
