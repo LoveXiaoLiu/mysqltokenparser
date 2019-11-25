@@ -71,7 +71,7 @@ Quickstart
 Features
 --------
 
-* Current version only support create and alter table
+* Current version only support DDL(CREATE table, ALTER table), DML(simple SELECT, INSERT).
 * TODO：SUPPORT MORE SQL STATEMENTS
 
 Credits

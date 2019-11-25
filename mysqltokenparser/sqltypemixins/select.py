@@ -5,7 +5,7 @@ from mysqltokenparser.MySqlParser import MySqlParser
 from mysqltokenparser.constant import *
 
 
-class SelectMixin:
+class SelectMixin(object):
     """
     select type:
         simpleSelect parenthesisSelect unionSelect unionParenthesisSelect
@@ -69,6 +69,17 @@ class SelectMixin:
         where_expression = ret.setdefault('where_expression', [])
         if isinstance(child, MySqlParser.NestedExpressionAtomContext):
             where_expression.extend(self._enterNestedExpressionAtom(child).get('where_expression'))
+
+        if isinstance(child, MySqlParser.PredicateExpressionContext):
+            where_expression.extend(self._enterPredicateExpression(child).get('where_expression'))
+
+        if isinstance(child, MySqlParser.ConstantExpressionAtomContext):
+            where_expression.append(self._enterConstantExpressionAtom(child).get('constant_expression'))
+
+    @iterchild
+    def _enterConstantExpressionAtom(self, child, ret):
+        if isinstance(child, MySqlParser.ConstantContext):
+            ret['constant_expression'] = self._get_last_name(child)
 
     @iterchild
     def _enterNestedExpressionAtom(self, child, ret):

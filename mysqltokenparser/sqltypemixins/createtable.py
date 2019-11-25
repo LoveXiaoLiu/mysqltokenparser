@@ -4,7 +4,7 @@ from mysqltokenparser.MySqlParser import MySqlParser
 from mysqltokenparser.constant import *
 
 
-class CreateTableMixin:
+class CreateTableMixin(object):
     """
     create table type: copyCreateTable queryCreateTable columnCreateTable
 

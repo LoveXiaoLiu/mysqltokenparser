@@ -6,7 +6,7 @@ from mysqltokenparser.MySqlParser import MySqlParser
 from mysqltokenparser.constant import *
 
 
-class AlterTableMixin:
+class AlterTableMixin(object):
     def enterAlterTable(self, ctx):
         data = {}
         self.ret['data'] = {
