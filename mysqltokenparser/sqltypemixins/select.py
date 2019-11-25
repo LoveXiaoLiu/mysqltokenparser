@@ -65,6 +65,26 @@ class SelectMixin(object):
             where_expression.extend(self._enterExpressionAtomPredicate(child).get('where_expression'))
 
     @iterchild
+    def _enterExpressionAtomPredicateForFullColumnNameExpressionAtomContext(self, child, ret):
+        full_columns = ret.setdefault('full_columns', [])
+        if isinstance(child, MySqlParser.FullColumnNameExpressionAtomContext):
+            full_columns.append(''.join(self._enterFullColumnName(child).get('full_column')))
+        if isinstance(child, MySqlParser.ConstantExpressionAtomContext):
+            full_columns.append(self._enterConstantExpressionAtom(child).get('constant_expression'))
+
+    @iterchild
+    def _enterFullColumnName(self, child, ret):
+        if isinstance(child, MySqlParser.FullColumnNameContext):
+            ret.update(self._enterFullColumnNameDetail(child))
+
+    @iterchild
+    def _enterFullColumnNameDetail(self, child, ret):
+        full_column = ret.setdefault('full_column', [])
+        if isinstance(child, MySqlParser.UidContext) or\
+            isinstance(child, MySqlParser.DottedIdContext):
+            full_column.append(self._get_last_name(child))
+
+    @iterchild
     def _enterExpressionAtomPredicate(self, child, ret):
         where_expression = ret.setdefault('where_expression', [])
         if isinstance(child, MySqlParser.NestedExpressionAtomContext):
@@ -90,7 +110,11 @@ class SelectMixin(object):
     def _enterBinaryComparasionPredicate(self, child, ret):
         where_expression = ret.setdefault('where_expression', [])
         if isinstance(child, MySqlParser.ExpressionAtomPredicateContext):
-            where_expression.append(self._get_last_name(child))
+            where_expression.extend(
+                self._enterExpressionAtomPredicateForFullColumnNameExpressionAtomContext(
+                    child
+                ).get('full_columns', [])
+            )
 
         if isinstance(child, MySqlParser.ComparisonOperatorContext):
             where_expression.append(''.join(self._enterComparisonOperator(child).get('comparison_oper')))
