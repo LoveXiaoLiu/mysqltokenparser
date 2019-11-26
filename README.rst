@@ -38,6 +38,10 @@ Quickstart
 
 0x02 Tutorial
 
+* The library is so simple.
+* All types of SQL have different keys that are easy to identify.
+* And then You need to explore it.
+
 .. code:: python
 
     import mysqltokenparser as mtp
